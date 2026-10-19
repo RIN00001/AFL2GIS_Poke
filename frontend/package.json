@@ -1,0 +1,7 @@
+{
+  "name": "ciputra-field-dex",
+  "private": true,
+  "type": "module",
+  "description": "No build step: native modules and a locally vendored Three.js 0.180.0",
+  "scripts": {"check": "node --check src/main.js"}
+}

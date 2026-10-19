@@ -1,0 +1,40 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Ciputra expedition boundary",
+        "color": "#91a87d",
+        "source": "Synthetic classroom game zone"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              112.62698845445001,
+              -7.290168398475686
+            ],
+            [
+              112.63921377603683,
+              -7.2901242356195635
+            ],
+            [
+              112.63916777797962,
+              -7.277465257079452
+            ],
+            [
+              112.6269427990779,
+              -7.277509342449753
+            ],
+            [
+              112.62698845445001,
+              -7.290168398475686
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
