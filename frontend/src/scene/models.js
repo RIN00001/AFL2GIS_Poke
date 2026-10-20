@@ -14,8 +14,9 @@ export function character(species, color, player=false) {
   const body=player?'#e26f4d':color;
   ball(body,0,4,0,3.4,4.3,2.8);ball(player?'#edc8a2':color,0,9,0,3.4,3.2,3);
   ball('#303f3a',-1.2,9.5,2.7,.45,.65,.35);ball('#303f3a',1.2,9.5,2.7,.45,.65,.35);
-  ball(player?'#374e59':color,-2,1,1,1.5,1.1,2);ball(player?'#374e59':color,2,1,1,1.5,1.1,2);
-  if(player){ball('#f4f0dd',0,11.5,0,3.5,1,3.3);ball('#427566',0,5,-2.7,2.4,2.7,1.5);ball('#edc8a2',-4,5,0,1,2,1);ball('#edc8a2',4,5,0,1,2,1);}
+  const leftFoot=ball(player?'#374e59':color,-2,1,1,1.5,1.1,2),rightFoot=ball(player?'#374e59':color,2,1,1,1.5,1.1,2);
+  let leftArm,rightArm;
+  if(player){ball('#f4f0dd',0,11.5,0,3.5,1,3.3);ball('#427566',0,5,-2.7,2.4,2.7,1.5);leftArm=ball('#edc8a2',-4,5,0,1,2,1);rightArm=ball('#edc8a2',4,5,0,1,2,1);}
   if(species==='Pikachu'){cone('#f5c842',-2,14,0,1.1,6,-.2);cone('#f5c842',2,14,0,1.1,6,.2);ball('#e65f48',-2.5,8.4,2.5,.8,.7,.4);ball('#e65f48',2.5,8.4,2.5,.8,.7,.4);cone('#d3a22e',4,5,-2,2,7,-.7);}
   if(species==='Bulbasaur'){ball('#4d8c57',0,6,-3,3.7,3,3);cone('#447a4b',0,9,-3,3,5);cone(color,-2,12,0,1,3);cone(color,2,12,0,1,3);}
   if(species==='Squirtle'){ball('#a5764e',0,4,-2,3.8,4,2);ball('#efd6a2',0,4,2.5,2.5,3,.7);ball(color,0,2,-5,1.8,1.8,1.8);}
@@ -27,5 +28,17 @@ export function character(species, color, player=false) {
   // Free movement can cross building footprints. Keep game characters readable
   // above map geometry, like map markers, while retaining their 3D lighting.
   group.traverse(obj=>{if(obj.isMesh){obj.renderOrder=20;obj.material.depthTest=false;}});
+  const animated=group.children.map(mesh=>({mesh,position:mesh.position.clone(),scale:mesh.scale.clone(),rotation:mesh.rotation.clone()}));
+  group.userData.animate=(time,moving,reduced)=>{
+    const stride=moving&&!reduced?Math.sin(time*14):0;
+    leftFoot.position.z=1+stride*1.8;rightFoot.position.z=1-stride*1.8;
+    leftFoot.position.y=1+Math.max(0,stride)*1.1;rightFoot.position.y=1+Math.max(0,-stride)*1.1;
+    if(player){leftArm.rotation.x=stride*.7;rightArm.rotation.x=-stride*.7;return;}
+    if(reduced)return;
+    for(const part of animated){
+      if(species==='Charizard'&&part.mesh.geometry.type==='ConeGeometry'&&Math.abs(part.position.x)===5)part.mesh.rotation.z=part.rotation.z+Math.sin(time*4)*.28*Math.sign(part.position.x);
+      if((species==='Pikachu'||species==='Eevee')&&part.position.y===14)part.mesh.rotation.z=part.rotation.z+Math.sin(time*2.4)*.07;
+    }
+  };
   return group;
 }

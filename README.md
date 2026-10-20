@@ -24,6 +24,8 @@ On another computer, install Python 3.11+ and run `scripts/setup.ps1` once while
 - E or the catch button: catch the nearest eligible Pokémon, within 30 m.
 - View whole area: overview of campus and hospital; switch back to follow.
 - + / −: zoom. Show habitats: toggle synthetic game polygons.
+- Sound on/off: locally synthesized footsteps, proximity chime, catch swoosh, and discovery fanfare. Audio starts after a click or key press; the preference is saved in this browser.
+- Player steps/arm swings, Pokémon idle motion, Charizard wing flaps, capture-ball arcs, particles, and discovery banners are visual only. System reduced-motion preferences disable decorative motion.
 - Reload Python: reload spawn source, configuration, and GeoJSON without restarting.
 - Compare scenarios: same current position, all spawns, 30 m versus 60 m.
 - Reset expedition: clear collection and return to campus after confirmation.
@@ -68,7 +70,7 @@ Data is EPSG:4326 (longitude, latitude). pyproj converts to EPSG:32749 (UTM 49S)
 
 Python builds a buffer and computes exact projected distance for eligibility (distance <= radius, including the edge). The drawn buffer approximates the circle with 256 segments. GeoPandas spatial join assigns spawn points to intersecting habitat polygons, including polygon edges. Overlapping habitats may produce multiple matches; counts use unique spawn IDs.
 
-The backend owns position and catch decisions; JavaScript sends input direction and renders results. The default 32 m/s speed is deliberately accelerated for demonstrations. Movement is constrained to the outer polygon but does not collide with buildings or follow roads. The server is intended for a single local player; all tabs share the same session.
+The backend owns position and catch decisions; JavaScript sends input direction and renders results. The default 32 m/s speed is deliberately accelerated for demonstrations. Movement checks the entire path against building polygons and the outer boundary, with a configurable 3 m player radius. Diagonal input slides along an unblocked axis. It does not snap to roads. The server is intended for a single local player; all tabs share the same session.
 
 ## Reproduce analysis and tests
 
@@ -81,4 +83,4 @@ The notebook in `notebooks/` uses the same functions. Open with VS Code Jupyter 
 
 ## Limitations
 
-OSM coverage may be incomplete or outdated. Only simple closed ways are imported as polygons; multipolygon relations are not assembled. Building heights default to 7 m if unavailable and are visual approximations. Landmark pins are approximate reference locations, not entrances. Habitats, spawn positions, and playable boundary are synthetic. Free movement can pass through buildings; distance is planar proximity, not travel distance or accessibility. Models are oversized, simplified fan-art primitives. Credits and provenance: `data/sources.md` and `docs/asset_credits.md`.
+OSM coverage may be incomplete or outdated. Only simple closed ways are imported as polygons; multipolygon relations are not assembled. Building heights default to 7 m if unavailable and are visual approximations. Landmark pins are approximate reference locations, not entrances. Habitats, spawn positions, and playable boundary are synthetic. Buildings block movement, but catch distance remains planar proximity and can pass through walls; it is not travel distance or accessibility. Models are oversized, simplified fan-art primitives. Credits and provenance: `data/sources.md` and `docs/asset_credits.md`.

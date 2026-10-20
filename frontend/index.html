@@ -13,11 +13,12 @@
 <section id="map" aria-label="Interactive 3D campus map">
 <div id="canvas-host"></div><div id="labels"></div>
 <div class="map-heading"><div class="eyebrow">THE NEIGHBORHOOD</div><h2>Campus to care.</h2><p>Universitas Ciputra ↔ Ciputra Hospital</p></div>
-<div class="map-tools"><button id="follow" title="Switch between follow and overview">View whole area</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="reload">↻ Reload Python</button></div>
+<div class="map-tools"><button id="follow" title="Switch between follow and overview">View whole area</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="sound" aria-pressed="true" title="Synthesized sound effects start after your first interaction">♪ Sound on</button><button id="reload">↻ Reload Python</button></div>
 <div class="compass">N<span>↑</span></div>
 <div class="legend"><strong>MAP KEY</strong><span><i style="background:#b1c9a4"></i> Habitat</span><span><i style="background:#d5cfc1"></i> Buildings</span><span><i style="background:#619f89"></i> Catch radius</span><label><input id="show-habitats" type="checkbox" checked> Show habitats</label></div>
 <div id="encounter" class="encounter"><span class="eyebrow">NEAREST DISCOVERY</span><h3>Getting your bearings…</h3><p>Preparing the local map.</p><button id="catch" disabled>Move closer to catch</button></div>
 <div class="bottom-bar"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp; <kbd>E</kbd> Catch</span><span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a> · ODbL</span></div>
+<div id="capture-banner" role="status" aria-live="polite"><span class="capture-emblem">✦</span><div><span class="eyebrow">NEW DISCOVERY</span><h2 id="capture-name"></h2><p id="capture-note"></p></div></div>
 <div id="toast" role="status" aria-live="polite"></div><div id="loading">Preparing your expedition…</div>
 </section>
 <section class="inspector"><div><span class="eyebrow">LIVE GIS</span><h2>Behind the discovery</h2></div><div class="metric"><label>PLAYER · WGS 84</label><strong id="coordinates">—</strong></div><div class="metric"><label>ANALYSIS CRS</label><strong>EPSG:32749 <small>meters</small></strong></div><div class="metric"><label>CATCH BUFFER</label><strong id="radius">30 m</strong></div><button id="compare">Compare scenarios</button><button id="reset" class="quiet">Reset expedition</button><div id="scenario-results" hidden></div></section>

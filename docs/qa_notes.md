@@ -14,7 +14,7 @@
 
 **What happens on a habitat boundary?** `intersects` includes the edge. `within` would exclude it. Overlapping polygons can produce multiple matches.
 
-**Why can movement cross buildings?** It is intentionally free movement for a small prototype. The outer boundary is enforced; navigation and collision are future work. Catch distance is not walking distance.
+**How does collision work?** Python buffers obstacles by the player radius, shrinks the playable boundary, and checks each movement LineString against a spatial index of solid polygons. Checking the entire segment prevents tunneling through thin walls. If a diagonal move is blocked, a clear axis can slide along the wall. Catch distance remains straight-line distance and does not test walls.
 
 **What runs in Python?** Coordinate transformations, source loading, movement validation, spatial join, catch range checks, collection persistence, and scenario analysis. JavaScript draws the scene and sends input.
 

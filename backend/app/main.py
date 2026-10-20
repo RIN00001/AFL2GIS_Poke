@@ -13,6 +13,7 @@ from .gis.layers import ROOT, load_layer
 from .gis.coordinates import to_local, to_lonlat
 from .gis.analysis import eligible, habitat_join, compare_scenarios, buffer_ring
 from .game.movement import move
+from .game.collision import from_layers
 from .game.catching import catch
 from .game.pokedex import read_save, save
 
@@ -51,7 +52,9 @@ def load_world():
     start = to_local(*source['LANDMARKS'][config['start_landmark']]['coordinates'])
     if not boundary.covers(Point(start)):
         raise ValueError('Starting point is outside the playable area.')
-    return dict(config=config, spawns=spawns, landmarks=landmarks, layers=layers, boundary=boundary, start=start)
+    collision = from_layers(boundary, layers, config)
+    start = collision.safe_position(start)
+    return dict(config=config, spawns=spawns, landmarks=landmarks, layers=layers, boundary=boundary, collision=collision, start=start)
 
 world = load_world()
 position = world['start']
@@ -65,7 +68,7 @@ def state():
 @app.get('/api/world')
 def get_world():
     with lock:
-        return {k: v for k, v in world.items() if k != 'boundary'} | {'state': state()}
+        return {k: v for k, v in world.items() if k not in {'boundary', 'collision'}} | {'state': state()}
 
 class Movement(BaseModel):
     dx: float = Field(ge=-1, le=1)
@@ -79,7 +82,7 @@ def movement(command: Movement):
         now = time.monotonic()
         dt = min(command.dt, now - last_move)
         last_move = now
-        position = move(position, command.dx, command.dy, dt, world['config']['movement_speed_mps'], world['boundary'])
+        position = move(position, command.dx, command.dy, dt, world['config']['movement_speed_mps'], world['boundary'], world['collision'])
         return state()
 
 @app.post('/api/catch')
@@ -96,11 +99,11 @@ def reload_world():
     with lock:
         try:
             updated = load_world()
+            safe_position = updated['collision'].safe_position(position)
         except Exception as error:
             raise HTTPException(400, f'Reload failed; previous world retained: {error}') from error
         world = updated
-        if not world['boundary'].covers(Point(position)):
-            position = world['start']
+        position = safe_position
         return get_world()
 
 @app.post('/api/reset')
