@@ -25,3 +25,7 @@
 @media(max-width:760px){#capture-banner{padding:17px;gap:12px}#capture-banner h2{font-size:22px}#capture-banner .capture-emblem{width:44px;height:44px;font-size:28px}.map-tools{max-width:calc(100% - 44px);justify-content:flex-start;gap:5px}.map-tools button{padding:10px 11px;font-size:10px}.compass{top:190px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 #capture-banner{visibility:hidden}#capture-banner.visible{visibility:visible}
+
+/* Preserve the generated place hint as a separate readable line. */
+.encounter p{white-space:pre-line}
+.dex-item small{display:block;line-height:1.5;color:#64735c;overflow-wrap:anywhere}

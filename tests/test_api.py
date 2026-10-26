@@ -23,6 +23,9 @@ class ApiTests(unittest.TestCase):
         world=self.client.get('/api/world').json()
         self.assertEqual(len(world['spawns']),8)
         self.assertIn('pikachu_01',world['state']['eligible'])
+        self.assertEqual(world['config']['place_radius_m'],20)
+        self.assertEqual(next(s for s in world['spawns'] if s['id']=='charizard_01')['hint'],'Charizard ada di Hokky Supermarket')
+        self.assertEqual(len(world['layers']['place_zones']['features']),8)
         result=self.client.post('/api/catch').json()
         self.assertEqual(result['caught_pokemon']['id'],'pikachu_01')
         self.assertIn('pikachu_01',result['state']['caught'])
@@ -46,7 +49,7 @@ class ApiTests(unittest.TestCase):
         with patch('backend.app.main.runpy.run_path',return_value=source):
             world=main.load_world()
         charizard=next(s for s in world['spawns'] if s['id']=='charizard_01')
-        self.assertAlmostEqual(charizard['x'],-25)
-        self.assertAlmostEqual(charizard['y'],-20)
+        self.assertAlmostEqual(charizard['x'],15)
+        self.assertAlmostEqual(charizard['y'],0)
 
 if __name__=='__main__':unittest.main()

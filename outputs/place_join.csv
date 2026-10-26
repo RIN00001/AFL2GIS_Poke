@@ -1,0 +1,9 @@
+spawn_id,place_id,place_name,category
+pikachu_01,university,Universitas Ciputra,education
+bulbasaur_01,uc_loop,UC Loop,transport
+squirtle_01,apartment,UC Apartment,housing
+eevee_01,pirates,Pirates café,food
+jigglypuff_01,indomaret,Indomaret,shopping
+charizard_01,hokky,Hokky Supermarket,shopping
+snorlax_01,hospital,Ciputra Hospital,healthcare
+gengar_01,hospital_bus,Ciputra Hospital B,transport

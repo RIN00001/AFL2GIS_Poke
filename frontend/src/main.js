@@ -37,7 +37,7 @@ function install(data){
   scene.add(worldGroup);$('labels').replaceChildren();landmarkLabels=[];
   for(const landmark of world.landmarks){const element=document.createElement('div');element.className='landmark-label';element.textContent=(landmark.id==='hospital'?'✚  ':'◈  ')+landmark.name;$('labels').appendChild(element);landmarkLabels.push({element,position:new THREE.Vector3(landmark.position[0],22,-landmark.position[1])});}
   $('dex').replaceChildren();
-  for(const s of world.spawns){const item=document.createElement('div');item.className='dex-item';item.dataset.id=s.id;const orb=document.createElement('span');orb.className='orb';orb.style.background=s.color;const text=document.createElement('span');const b=document.createElement('b');b.textContent=s.species;const small=document.createElement('small');small.textContent=s.kind;text.append(b,small);item.append(orb,text);$('dex').appendChild(item);}
+  for(const s of world.spawns){const item=document.createElement('div');item.className='dex-item';item.dataset.id=s.id;const orb=document.createElement('span');orb.className='orb';orb.style.background=s.color;const text=document.createElement('span');const b=document.createElement('b');b.textContent=s.species;const small=document.createElement('small');small.textContent=s.hint;text.append(b,small);item.append(orb,text);$('dex').appendChild(item);}
   document.querySelector('.section-label span').textContent=`${world.spawns.length} SPECIES`;
   map.habitats.visible=$('show-habitats').checked;
   $('radius').textContent=`${world.config.catch_radius_m} m`;
@@ -52,7 +52,7 @@ function updateUI(){
   const available=world.spawns.filter(s=>!state.caught.includes(s.id)).map(s=>({...s,distance:Math.hypot(s.x-state.position[0],s.y-state.position[1])})).sort((a,b)=>a.distance-b.distance);
   const nearest=available[0];
   $('encounter').querySelector('h3').textContent=nearest?nearest.species:'Collection complete!';
-  $('encounter').querySelector('p').textContent=nearest?`${Math.round(nearest.distance)} m away · ${nearest.kind}\n${nearest.habitats.join(' / ')||'Outside habitat zones'}`:'Eight discoveries, one great expedition.';
+  $('encounter').querySelector('p').textContent=nearest?`${Math.round(nearest.distance)} m away · ${nearest.kind}\n${nearest.hint}`:'Eight discoveries, one great expedition.';
   const canCatch=state.eligible.length>0;$('catch').disabled=!canCatch||catchBusy;$('catch').textContent=catchBusy?'Catching…':canCatch?'E  ·  Catch Pokémon':nearest?'Move closer to catch':'All Pokémon collected';
   $('encounter').classList.toggle('in-range',canCatch&&!catchBusy);
   if(state.eligible.some(id=>!previousEligible.has(id)))sound.nearby();

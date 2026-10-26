@@ -29,6 +29,11 @@ export function mapLayers(layers){
   for(const f of layers.buildings.features){let height=Number.parseFloat(f.properties.height)||Number.parseFloat(f.properties['building:levels'])*3.5||7;height=Math.min(Math.max(height,3),65);group.add(polygon(f.geometry,'#d4cebf',height));}
   for(const f of layers.habitats.features){const p=polygon(f.geometry,f.properties.color||'#8fb589',0,.16);p.position.y=.12;habitats.add(p);}
   group.add(habitats);
+  for(const f of layers.place_zones.features){
+    const points=f.geometry.coordinates[0].map(([x,y])=>new THREE.Vector3(x,1.2,-y));
+    group.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:'#8b4bb3',depthTest:false})));
+  }
+
   const boundary=layers.play_area.features[0].geometry.coordinates[0].map(([x,y])=>new THREE.Vector3(x,.8,-y));
   group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(boundary),new THREE.LineDashedMaterial({color:'#8da17a',dashSize:10,gapSize:8})));group.children.at(-1).computeLineDistances();
   return {group,habitats};

@@ -1,0 +1,15 @@
+{
+"type": "FeatureCollection",
+"name": "pokemon",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": "pikachu_01", "species": "Pikachu" }, "geometry": { "type": "Point", "coordinates": [ 112.631626518242385, -7.285558205438802 ] } },
+{ "type": "Feature", "properties": { "id": "bulbasaur_01", "species": "Bulbasaur" }, "geometry": { "type": "Point", "coordinates": [ 112.630685557091184, -7.285374173573125 ] } },
+{ "type": "Feature", "properties": { "id": "squirtle_01", "species": "Squirtle" }, "geometry": { "type": "Point", "coordinates": [ 112.631882561989642, -7.285456812843088 ] } },
+{ "type": "Feature", "properties": { "id": "eevee_01", "species": "Eevee" }, "geometry": { "type": "Point", "coordinates": [ 112.633259356961887, -7.285311173060851 ] } },
+{ "type": "Feature", "properties": { "id": "jigglypuff_01", "species": "Jigglypuff" }, "geometry": { "type": "Point", "coordinates": [ 112.630366073150256, -7.285083878329964 ] } },
+{ "type": "Feature", "properties": { "id": "charizard_01", "species": "Charizard" }, "geometry": { "type": "Point", "coordinates": [ 112.6332165183656, -7.285949422458398 ] } },
+{ "type": "Feature", "properties": { "id": "snorlax_01", "species": "Snorlax" }, "geometry": { "type": "Point", "coordinates": [ 112.634637735984811, -7.281086041255674 ] } },
+{ "type": "Feature", "properties": { "id": "gengar_01", "species": "Gengar" }, "geometry": { "type": "Point", "coordinates": [ 112.634195872553278, -7.281330378488378 ] } }
+]
+}

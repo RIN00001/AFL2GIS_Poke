@@ -37,7 +37,7 @@ Edit **backend/app/game/spawns.py**. Change the Charizard row:
 
 ```python
 dict(id='charizard_01', species='Charizard', kind='Fire', color='#ed9156',
-     landmark='university', offset=(-25, -20)),
+     landmark='university', offset=(15, 0)),
 ```
 
 Save, then click **Reload Python**. `offset` is `(east_m, north_m)` relative to the landmark. Use `coordinates=(longitude, latitude)` for an explicit geographic location; it overrides landmark/offset. Keep IDs stable. A caught spawn stays caught after reload; use Reset expedition to see it again.
@@ -66,6 +66,9 @@ scripts/               Start, setup, offline analysis, optional downloads
 
 ## GIS design
 
+The proposal's main layers are now named place points (`data/editable/places.geojson`) and Pokemon points (Python-authored, exported as `outputs/pokemon.geojson`). Every place has a name/category and source record. Place points are projected and buffered **20 m**; `gpd.sjoin(..., predicate='intersects')` produces each Pokemon's `places` and `hint`, displayed in the collection and nearest-encounter panels. Purple rings show the place zones. Original habitats remain supplementary context. Real-place coordinates are retained OSM nodes, representative points of retained OSM polygons, or the documented university reference pin. UC Loop is not UC Walk; unverified UC Walk/Plaza coordinates are omitted.
+
+
 Data is EPSG:4326 (longitude, latitude). pyproj converts to EPSG:32749 (UTM 49S) before measurement. The scene subtracts a fixed projected origin for small local coordinates; north maps to negative Three.js Z. Analysis restores full UTM coordinates for GeoPandas tables.
 
 Python builds a buffer and computes exact projected distance for eligibility (distance <= radius, including the edge). The drawn buffer approximates the circle with 256 segments. GeoPandas spatial join assigns spawn points to intersecting habitat polygons, including polygon edges. Overlapping habitats may produce multiple matches; counts use unique spawn IDs.
@@ -79,7 +82,14 @@ The backend owns position and catch decisions; JavaScript sends input direction 
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-The notebook in `notebooks/` uses the same functions. Open with VS Code Jupyter or JupyterLab and select `.venv` as kernel (install `ipykernel` if needed). It generates a result CSV and a standalone SVG map with labels, legend, units, and layer order. Notebook tools are optional; the script works in the installed environment.
+For a saved notebook with fresh tables and maps:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r notebooks/requirements.txt
+.\.venv\Scripts\python.exe scripts/run_notebook.py
+```
+
+The notebook in `notebooks/` uses the same functions. Open with VS Code Jupyter or JupyterLab and select `.venv` as kernel (install `ipykernel` if needed). It generates scenario/spawn/place-join CSV tables, EPSG:4326 point/zone GeoJSON and overview/close-up SVG maps with labels, legends and metric scale bars. Executed outputs are embedded in the notebook. See `docs/requirements_check.md` for the verification checklist. Notebook tools are optional; the script works in the installed environment.
 
 ## Limitations
 

@@ -7,18 +7,21 @@ To use an exact point: add coordinates=(112.6315, -7.285631) to that row.
 Exact coordinates override the landmark and offset.
 """
 
-LANDMARKS = {
-    'university': {'name': 'Universitas Ciputra', 'coordinates': (112.631500, -7.285631)},
-    'hospital': {'name': 'Ciputra Hospital', 'coordinates': (112.6346424, -7.2811676)},
-}
+import json
+from pathlib import Path
+
+# Named place points are the canonical place layer. Reload Python rereads this file.
+_places = json.loads((Path(__file__).resolve().parents[3] / 'data/editable/places.geojson').read_text(encoding='utf-8'))
+LANDMARKS = {f['properties']['id']: {'name': f['properties']['name'], 'coordinates': tuple(f['geometry']['coordinates'])}
+             for f in _places['features']}
 
 SPAWNS = [
     dict(id='pikachu_01', species='Pikachu', kind='Electric', color='#f5c842', landmark='university', offset=(14, 8)),
-    dict(id='bulbasaur_01', species='Bulbasaur', kind='Grass', color='#64b894', landmark='university', offset=(-75, 65)),
-    dict(id='squirtle_01', species='Squirtle', kind='Water', color='#68b7db', landmark='university', offset=(45, -25)),
-    dict(id='eevee_01', species='Eevee', kind='Normal', color='#bb875b', landmark='university', offset=(85, 120)),
-    dict(id='jigglypuff_01', species='Jigglypuff', kind='Fairy', color='#ed9fbe', landmark='university', offset=(-100, -100)),
-    dict(id='charizard_01', species='Charizard', kind='Fire', color='#ed9156', landmark='hospital', offset=(-25, -20)),
-    dict(id='snorlax_01', species='Snorlax', kind='Normal', color='#4f8790', landmark='hospital', offset=(100, 40)),
-    dict(id='gengar_01', species='Gengar', kind='Ghost', color='#9475ba', landmark='hospital', offset=(-85, 100)),
+    dict(id='bulbasaur_01', species='Bulbasaur', kind='Grass', color='#64b894', landmark='uc_loop', offset=(10, 0)),
+    dict(id='squirtle_01', species='Squirtle', kind='Water', color='#68b7db', landmark='apartment', offset=(0, -15)),
+    dict(id='eevee_01', species='Eevee', kind='Normal', color='#bb875b', landmark='pirates', offset=(10, 0)),
+    dict(id='jigglypuff_01', species='Jigglypuff', kind='Fairy', color='#ed9fbe', landmark='indomaret', offset=(0, 10)),
+    dict(id='charizard_01', species='Charizard', kind='Fire', color='#ed9156', landmark='hokky', offset=(15, 0)),
+    dict(id='snorlax_01', species='Snorlax', kind='Normal', color='#4f8790', landmark='hospital', offset=(10, 0)),
+    dict(id='gengar_01', species='Gengar', kind='Ghost', color='#9475ba', landmark='hospital_bus', offset=(0, 10)),
 ]

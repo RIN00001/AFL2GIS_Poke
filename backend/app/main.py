@@ -12,6 +12,7 @@ from shapely.geometry import shape, Point
 from .gis.layers import ROOT, load_layer
 from .gis.coordinates import to_local, to_lonlat
 from .gis.analysis import eligible, habitat_join, compare_scenarios, buffer_ring
+from .gis.places import place_analysis, local_features, PLACE_RADIUS_M
 from .game.movement import move
 from .game.collision import from_layers
 from .game.catching import catch
@@ -49,6 +50,13 @@ def load_world():
     habitats = habitat_join(spawns, layers['habitats'])
     for s in spawns:
         s['habitats'] = habitats[s['id']]
+    places, zones, joined, memberships = place_analysis(spawns)
+    layers['places'] = local_features(places)
+    layers['place_zones'] = local_features(zones)
+    config['place_radius_m'] = PLACE_RADIUS_M
+    for s in spawns:
+        s['places'] = sorted(set(memberships[s['id']]))
+        s['hint'] = (f"{s['species']} ada di " + ' / '.join(s['places'])) if s['places'] else f"{s['species']}: outside named place zones"
     start = to_local(*source['LANDMARKS'][config['start_landmark']]['coordinates'])
     if not boundary.covers(Point(start)):
         raise ValueError('Starting point is outside the playable area.')

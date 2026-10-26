@@ -1,9 +1,9 @@
-id,species,longitude,latitude,east_from_origin_m,north_from_origin_m,habitats
-pikachu_01,Pikachu,112.63162651824238,-7.285558205438802,14.0,8.0,Campus grove
-bulbasaur_01,Bulbasaur,112.63081869642839,-7.285045708351976,-75.0,65.0,Campus grove
-squirtle_01,Squirtle,112.63190832489113,-7.285855584064614,45.0,-25.0,Campus grove
-eevee_01,Eevee,112.6322658084846,-7.284543164147523,85.0,120.0,Campus grove
-jigglypuff_01,Jigglypuff,112.63059769814636,-7.286538481756426,-100.0,-100.0,Campus grove
-charizard_01,Charizard,112.63441666479419,-7.281349260547513,323.78917178325355,472.3605565354228,Hospital gardens
-snorlax_01,Snorlax,112.63554664964826,-7.280802642887943,448.78917178325355,532.3605565354228,Hospital gardens
-gengar_01,Gengar,112.63386939977464,-7.280266163896026,263.78917178325355,592.3605565354228,Hospital gardens
+id,species,longitude,latitude,east_from_origin_m,north_from_origin_m,habitats,places,hint
+pikachu_01,Pikachu,112.63162651824238,-7.285558205438802,14.0,8.0,Campus grove,Universitas Ciputra,Pikachu ada di Universitas Ciputra
+bulbasaur_01,Bulbasaur,112.63068555709118,-7.285374173573125,-89.83321163861547,28.727603429928422,Campus grove,UC Loop,Bulbasaur ada di UC Loop
+squirtle_01,Squirtle,112.63188256198964,-7.285456812843088,42.31443711812608,19.111026771366596,Campus grove,UC Apartment,Squirtle ada di UC Apartment
+eevee_01,Eevee,112.63325935696189,-7.285311173060851,194.4069394734688,34.66806611791253,,Pirates café,Eevee ada di Pirates café
+jigglypuff_01,Jigglypuff,112.63036607315026,-7.285083878329964,-124.99671084736474,60.95914653129876,Campus grove,Indomaret,Jigglypuff ada di Indomaret
+charizard_01,Charizard,112.6332165183656,-7.285949422458398,189.42120471247472,-35.89989793300629,,Hokky Supermarket,Charizard ada di Hokky Supermarket
+snorlax_01,Snorlax,112.63463773598481,-7.281086041255674,348.3067594055319,501.3821418657899,Hospital gardens,Ciputra Hospital,Snorlax ada di Ciputra Hospital
+gengar_01,Gengar,112.63419587255328,-7.281330378488378,299.41522738698404,474.5369236469269,Hospital gardens,Ciputra Hospital B,Gengar ada di Ciputra Hospital B

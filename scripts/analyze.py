@@ -2,13 +2,17 @@
 import csv
 import json
 import sys
-from html import escape
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from backend.app.main import load_world
-from backend.app.gis.analysis import compare_scenarios, buffer_ring
+from backend.app.gis.analysis import compare_scenarios
+from scripts.analysis_map import render_map
+from backend.app.gis.places import place_analysis
+from backend.app.gis.coordinates import SOURCE_CRS
+import geopandas as gpd
+from shapely.geometry import Point
 import yaml
 
 def analyze():
@@ -22,31 +26,16 @@ def analyze():
         writer.writeheader()
         writer.writerows([{**r,'spawn_ids':'; '.join(r['spawn_ids'])} for r in rows])
     with (output/'spawn_table.csv').open('w',newline='',encoding='utf-8') as file:
-        writer=csv.writer(file);writer.writerow(['id','species','longitude','latitude','east_from_origin_m','north_from_origin_m','habitats'])
-        for s in world['spawns']:writer.writerow([s['id'],s['species'],*s['coordinates'],s['x'],s['y'],'; '.join(s['habitats'])])
-    def xy(x,y):return (60+(x+500)*.55,90+(900-y)*.55)
-    def points(coords):return ' '.join(f'{a:.2f},{b:.2f}' for a,b in (xy(x,y) for x,y in coords))
-    svg=['<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="980" viewBox="0 0 1100 980">', '<rect width="1100" height="980" fill="#f6f5ed"/>','<text x="50" y="40" font-family="sans-serif" font-size="24" fill="#294a3c">Ciputra Field Dex · baseline spatial analysis</text>','<text x="50" y="65" font-family="sans-serif" font-size="13">EPSG:32749 · distances in meters · source data EPSG:4326</text>', '<defs><clipPath id="map"><rect x="60" y="90" width="742.5" height="770"/></clipPath></defs><g clip-path="url(#map)">']
-    for name,color in [('landcover','#d8e3c9'),('habitats','#b2caa7'),('buildings','#d5cfc2')]:
-        for f in world['layers'][name]['features']:
-            svg.append(f'<polygon points="{points(f["geometry"]["coordinates"][0])}" fill="{color}" stroke="#bec7b0" stroke-width=".4"/>')
-    for f in world['layers']['paths']['features']:
-        svg.append(f'<polyline points="{points(f["geometry"]["coordinates"])}" fill="none" stroke="#fffdf5" stroke-width="3"/>')
-    svg.append(f'<polygon points="{points(world["layers"]["play_area"]["features"][0]["geometry"]["coordinates"][0])}" fill="none" stroke="#658568" stroke-dasharray="7 5"/>')
-    for r in reversed(rows):
-        svg.append(f'<polygon points="{points(buffer_ring(position,r["radius_m"]))}" fill="#6d9984" fill-opacity=".15" stroke="#528473" stroke-width="1.5"/>')
-    for s in world['spawns']:
-        x,y=xy(s['x'],s['y']);svg.append(f'<circle cx="{x}" cy="{y}" r="5" fill="{escape(s["color"])}" stroke="#3b5143"/><text x="{x+9}" y="{y+4}" font-family="sans-serif" font-size="11">{escape(s["species"])}</text>')
-    x,y=xy(*position);svg.append(f'<circle cx="{x}" cy="{y}" r="4" fill="#213d32"/>')
-    for landmark in world['landmarks']:
-        x,y=xy(*landmark['position']);svg.append(f'<text x="{x-70}" y="{y-28}" font-family="sans-serif" font-size="13" font-weight="bold">{escape(landmark["name"])}</text>')
-    svg.append('</g>')
-    for i,text in enumerate(['LEGEND','Dark dot: player start','Colored dots: Pokemon','Green zones: synthetic habitats','Gray: OSM buildings','White: OSM paths',f'Rings: {rows[0]["radius_m"]} m / {rows[1]["radius_m"]} m','Dashed: playable boundary','N ↑','Scale: 100 m']):
-        svg.append(f'<text x="835" y="{120+i*28}" font-family="sans-serif" font-size="12" fill="#34513f">{text}</text>')
-    svg.append('<path d="M835 394h55" stroke="#34513f" stroke-width="3"/>')
-    svg.append('<text x="50" y="920" font-family="sans-serif" font-size="12">© OpenStreetMap contributors · ODbL · https://www.openstreetmap.org/copyright</text>')
-    svg.append('<text x="50" y="943" font-family="sans-serif" font-size="11">Synthetic game zones and spawns. Straight-line proximity; not road access. Landmark pins are approximate.</text></svg>')
-    (output/'analysis_map.svg').write_text('\n'.join(svg),encoding='utf-8')
+        writer=csv.writer(file);writer.writerow(['id','species','longitude','latitude','east_from_origin_m','north_from_origin_m','habitats','places','hint'])
+        for s in world['spawns']:writer.writerow([s['id'],s['species'],*s['coordinates'],s['x'],s['y'],'; '.join(s['habitats']),'; '.join(s['places']),s['hint']])
+    places, zones, joined, memberships = place_analysis(world['spawns'])
+    places.to_crs(SOURCE_CRS).to_file(output/'places.geojson', driver='GeoJSON')
+    pokemon = gpd.GeoDataFrame([{'id': s['id'], 'species': s['species'], 'geometry': Point(*s['coordinates'])} for s in world['spawns']], crs=SOURCE_CRS)
+    pokemon.to_file(output/'pokemon.geojson', driver='GeoJSON')
+    zones.to_crs(SOURCE_CRS).to_file(output/'place_zones.geojson', driver='GeoJSON')
+    joined.drop(columns=['geometry', 'index_right']).to_csv(output/'place_join.csv', index=False)
+    (output/'analysis_map.svg').write_text(render_map(world, rows), encoding='utf-8')
+    (output/'analysis_detail.svg').write_text(render_map(world, rows, detail=True), encoding='utf-8')
     return rows
 
 if __name__=='__main__':
