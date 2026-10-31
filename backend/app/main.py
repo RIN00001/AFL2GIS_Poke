@@ -1,82 +1,71 @@
-"""Run from project root: python -m uvicorn backend.app.main:app --port 8000"""
-import json
+"""Local manual-campus game. Run python -m uvicorn backend.app.main:app."""
 import math
-import runpy
 import time
 import threading
 import yaml
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from shapely.geometry import shape, Point
-from .gis.layers import ROOT, load_layer
-from .gis.coordinates import to_local, to_lonlat
-from .gis.analysis import eligible, habitat_join, compare_scenarios, buffer_ring
-from .gis.places import place_analysis, local_features, PLACE_RADIUS_M
+from .gis.layers import ROOT
+from .gis.coordinates import to_lonlat
+from .gis.analysis import buffer_ring
+from .gis.manual import build_world, spatial_status
 from .game.movement import move
-from .game.collision import from_layers
 from .game.catching import catch
-from .game.pokedex import read_save, save
+from .game.pokedex import read_progress, save
 
 app = FastAPI(title='Ciputra Field Dex', docs_url='/api/docs')
 lock = threading.RLock()
 
+@app.exception_handler(RequestValidationError)
+async def invalid_request(_request, error):
+    # Do not echo invalid input: NaN/Infinity cannot be serialized as JSON.
+    messages = [f"{'.'.join(map(str, item['loc']))}: {item['msg']}" for item in error.errors()]
+    return JSONResponse(status_code=422, content={'detail': '; '.join(messages)})
+
 def load_world():
     config = yaml.safe_load((ROOT / 'config/game.yaml').read_text())
-    if not 1 <= config['catch_radius_m'] <= 500 or not 1 <= config['movement_speed_mps'] <= 100:
-        raise ValueError('Catch radius must be 1–500 m; speed must be 1–100 m/s.')
-    # run_path reads fresh source without Python's import cache during live coding.
-    source = runpy.run_path(str(ROOT / 'backend/app/game/spawns.py'))
-    landmarks = [{**v, 'id': k, 'position': to_local(*v['coordinates'])} for k, v in source['LANDMARKS'].items()]
-    spawns = []
-    for row in source['SPAWNS']:
-        row = dict(row)
-        if 'coordinates' in row:
-            x, y = to_local(*row['coordinates'])
-        else:
-            x, y = to_local(*source['LANDMARKS'][row['landmark']]['coordinates'])
-            dx, dy = row.get('offset', (0, 0))
-            x, y = x + dx, y + dy
-        if not all(math.isfinite(v) for v in (x,y)):
-            raise ValueError('Spawn coordinates must be finite.')
-        spawns.append({**row, 'x': x, 'y': y, 'coordinates': to_lonlat(x, y)})
-    if not spawns or len({s['id'] for s in spawns}) != len(spawns):
-        raise ValueError('Provide at least one spawn with unique IDs.')
-    layers = {name: load_layer(name) for name in ['paths', 'buildings', 'landcover', 'habitats', 'play_area']}
-    boundary = shape(layers['play_area']['features'][0]['geometry'])
-    for s in spawns:
-        if not boundary.covers(Point(s['x'], s['y'])):
-            raise ValueError(f"Spawn {s['id']} is outside the playable area.")
-    habitats = habitat_join(spawns, layers['habitats'])
-    for s in spawns:
-        s['habitats'] = habitats[s['id']]
-    places, zones, joined, memberships = place_analysis(spawns)
-    layers['places'] = local_features(places)
-    layers['place_zones'] = local_features(zones)
-    config['place_radius_m'] = PLACE_RADIUS_M
-    for s in spawns:
-        s['places'] = sorted(set(memberships[s['id']]))
-        s['hint'] = (f"{s['species']} ada di " + ' / '.join(s['places'])) if s['places'] else f"{s['species']}: outside named place zones"
-    start = to_local(*source['LANDMARKS'][config['start_landmark']]['coordinates'])
-    if not boundary.covers(Point(start)):
-        raise ValueError('Starting point is outside the playable area.')
-    collision = from_layers(boundary, layers, config)
-    start = collision.safe_position(start)
-    return dict(config=config, spawns=spawns, landmarks=landmarks, layers=layers, boundary=boundary, collision=collision, start=start)
+    detection = config['detection_radius_m']
+    capture = config['catch_radius_m']
+    if not 1 <= capture <= detection <= 500:
+        raise ValueError('Require 1 <= capture radius <= detection radius <= 500 m.')
+    if not 1 <= config['movement_speed_mps'] <= 100:
+        raise ValueError('Movement speed must be 1–100 m/s.')
+    if not 1 <= config['landmark_visit_radius_m'] <= detection:
+        raise ValueError('Landmark visit radius must be inside detection radius.')
+    return build_world(config)
 
 world = load_world()
 position = world['start']
-caught = read_save()
+caught, visited = read_progress()
 last_move = time.monotonic()
+
+def commit_progress(next_caught, next_visited):
+    """Persist first so a failed write cannot consume a catch or erase progress."""
+    try:
+        save(next_caught, next_visited)
+    except OSError as error:
+        raise HTTPException(503, 'Could not save progress. Your previous progress is kept; please try again.') from error
+    caught.clear(); caught.update(next_caught)
+    visited.clear(); visited.update(next_visited)
 
 def state():
     active = [s for s in world['spawns'] if s['id'] not in caught]
-    return {'position': position, 'coordinates': to_lonlat(*position), 'caught': sorted(caught), 'eligible': eligible(position, active, world['config']['catch_radius_m']), 'buffer': buffer_ring(position, world['config']['catch_radius_m'])}
+    detected, capturable = spatial_status(position, active, world['config']['detection_radius_m'], world['config']['catch_radius_m'])
+    valid_ids = {s['id'] for s in world['spawns']}
+    valid_landmarks = {p['id'] for p in world['landmarks']}
+    return {'position': position, 'coordinates': to_lonlat(*position),
+            'caught': sorted(caught & valid_ids), 'visited': sorted(visited & valid_landmarks),
+            'detected': detected, 'eligible': capturable,
+            'buffer': buffer_ring(position, world['config']['catch_radius_m']),
+            'detection_buffer': buffer_ring(position, world['config']['detection_radius_m'])}
 
 @app.get('/api/world')
 def get_world():
     with lock:
-        return {k: v for k, v in world.items() if k not in {'boundary', 'collision'}} | {'state': state()}
+        return {k:v for k,v in world.items() if k not in {'boundary','collision'}} | {'state':state()}
 
 class Movement(BaseModel):
     dx: float = Field(ge=-1, le=1)
@@ -88,7 +77,7 @@ def movement(command: Movement):
     global position, last_move
     with lock:
         now = time.monotonic()
-        dt = min(command.dt, now - last_move)
+        dt = min(command.dt, now-last_move)
         last_move = now
         position = move(position, command.dx, command.dy, dt, world['config']['movement_speed_mps'], world['boundary'], world['collision'])
         return state()
@@ -96,10 +85,22 @@ def movement(command: Movement):
 @app.post('/api/catch')
 def catching():
     with lock:
-        selected = catch(position, world['spawns'], world['config']['catch_radius_m'], caught)
-        if selected:
-            save(caught)
-        return {'caught_pokemon': selected, 'state': state()}
+        detected = set(state()['detected'])
+        next_caught = caught.copy()
+        selected = catch(position, [s for s in world['spawns'] if s['id'] in detected], world['config']['catch_radius_m'], next_caught)
+        if selected: commit_progress(next_caught, visited.copy())
+        return {'caught_pokemon': selected, 'state':state()}
+
+@app.post('/api/landmarks/{landmark_id}/visit')
+def visit_landmark(landmark_id: str):
+    with lock:
+        landmark = next((p for p in world['landmarks'] if p['id']==landmark_id), None)
+        if landmark is None: raise HTTPException(404,'Unknown landmark')
+        if math.dist(position, landmark['position']) > world['config']['landmark_visit_radius_m'] + 1e-8:
+            raise HTTPException(409,'Move within the landmark visit radius first.')
+        first_visit = landmark_id not in visited
+        commit_progress(caught.copy(), visited | {landmark_id})
+        return {'newly_visited':first_visit, 'landmark_id':landmark_id, 'state':state()}
 
 @app.post('/api/reload')
 def reload_world():
@@ -110,23 +111,35 @@ def reload_world():
             safe_position = updated['collision'].safe_position(position)
         except Exception as error:
             raise HTTPException(400, f'Reload failed; previous world retained: {error}') from error
-        world = updated
-        position = safe_position
+        world, position = updated, safe_position
         return get_world()
 
 @app.post('/api/reset')
 def reset():
     global position
     with lock:
-        caught.clear()
-        save(caught)
+        commit_progress(set(), set())
         position = world['start']
         return state()
 
 @app.get('/api/scenarios')
 def scenarios():
     with lock:
-        settings = yaml.safe_load((ROOT / 'config/scenarios.yaml').read_text())
-        return compare_scenarios(position, world['spawns'], settings['baseline_radius_m'], settings['alternative_radius_m'])
+        try:
+            settings = yaml.safe_load((ROOT / 'config/scenarios.yaml').read_text())
+            alternative = settings['alternative_detection_m']
+            if (isinstance(alternative, bool) or not isinstance(alternative, (int, float))
+                    or not math.isfinite(alternative)
+                    or not world['config']['catch_radius_m'] <= alternative <= 500):
+                raise ValueError('Alternative detection radius must be between the capture radius and 500 m.')
+        except (OSError, yaml.YAMLError, KeyError, TypeError, ValueError) as error:
+            raise HTTPException(400, f'Invalid scenario settings: {error}') from error
+        rows = []
+        for radius in (world['config']['detection_radius_m'], alternative):
+            detected, capturable = spatial_status(position, world['spawns'], radius, world['config']['catch_radius_m'])
+            rows.append({'detection_m':radius, 'capture_m':world['config']['catch_radius_m'],
+                'unique_detected':len(detected), 'unique_capturable':len(capturable),
+                'detected_ids':detected, 'capturable_ids':capturable})
+        return rows
 
 app.mount('/', StaticFiles(directory=ROOT / 'frontend', html=True), name='frontend')

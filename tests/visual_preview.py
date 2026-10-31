@@ -10,6 +10,7 @@ import uvicorn
 
 if __name__ == '__main__':
     main.caught = set()
+    main.visited = set()
     main.position = main.world['start']
-    main.save = lambda caught: None
+    main.save = lambda *args: None
     uvicorn.run(main.app, host='127.0.0.1', port=8001)

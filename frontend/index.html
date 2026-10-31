@@ -1,25 +1,46 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ciputra Field Dex</title><link rel="stylesheet" href="/src/style.css"></head>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f7faf7"><title>FieldDex · The Ciputra Expedition</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='18' fill='%231b8a78'/%3E%3Cpath d='M3 20h34' stroke='white' stroke-width='4'/%3E%3Ccircle cx='20' cy='20' r='6' fill='white'/%3E%3C/svg%3E"><link rel="stylesheet" href="/src/style.css"></head>
 <body>
-<header><a class="brand" href="/" aria-label="Ciputra Field Dex home"><span class="brand-icon">◈</span><span>FIELD<span class="light">DEX</span><small>CIPUTRA EXPLORER</small></span></a><div class="header-center"><span class="status-dot"></span> LOCAL EXPEDITION <span class="divider">/</span> SURABAYA, ID</div><div class="offline">● &nbsp; Offline ready</div></header>
-<main>
-<aside>
-<div class="eyebrow">YOUR EXPEDITION &nbsp; / &nbsp; 01</div><h1>A little closer.<br>A new discovery.</h1><p class="intro">Explore Ciputra, meet eight familiar faces, and complete your field collection.</p>
-<section class="progress-panel"><div class="row"><span>Field collection</span><strong id="progress">0 / 8</strong></div><div class="track"><div id="progress-fill"></div></div><small id="progress-note">Every discovery starts with a step.</small></section>
-<div class="row section-label"><h2>Pokédex</h2><span>8 SPECIES</span></div><div id="dex" class="dex"></div>
-<div class="field-note"><span>FIELD NOTE</span><p>Explore freely inside the boundary. Get within the catch ring and press <kbd>E</kbd>.</p></div>
-<footer>UNIVERSITAS CIPUTRA<br><span>A GIS & computer graphics experiment</span></footer>
-</aside>
-<section id="map" aria-label="Interactive 3D campus map">
-<div id="canvas-host"></div><div id="labels"></div>
-<div class="map-heading"><div class="eyebrow">THE NEIGHBORHOOD</div><h2>Campus to care.</h2><p>Universitas Ciputra ↔ Ciputra Hospital</p></div>
-<div class="map-tools"><button id="follow" title="Switch between follow and overview">View whole area</button><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button><button id="sound" aria-pressed="true" title="Synthesized sound effects start after your first interaction">♪ Sound on</button><button id="reload">↻ Reload Python</button></div>
-<div class="compass">N<span>↑</span></div>
-<div class="legend"><strong>MAP KEY</strong><span><i style="background:#8b4bb3"></i> Place zone (20 m)</span><span><i style="background:#b1c9a4"></i> Habitat</span><span><i style="background:#d5cfc1"></i> Buildings</span><span><i style="background:#619f89"></i> Catch radius</span><label><input id="show-habitats" type="checkbox" checked> Show habitats</label></div>
-<div id="encounter" class="encounter"><span class="eyebrow">NEAREST DISCOVERY</span><h3>Getting your bearings…</h3><p>Preparing the local map.</p><button id="catch" disabled>Move closer to catch</button></div>
-<div class="bottom-bar"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move &nbsp; <kbd>E</kbd> Catch</span><span>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a> · ODbL</span></div>
-<div id="capture-banner" role="status" aria-live="polite"><span class="capture-emblem">✦</span><div><span class="eyebrow">NEW DISCOVERY</span><h2 id="capture-name"></h2><p id="capture-note"></p></div></div>
-<div id="toast" role="status" aria-live="polite"></div><div id="loading">Preparing your expedition…</div>
+<header class="app-header">
+  <a class="brand" href="/" aria-label="FieldDex home"><span class="brand-ball"></span><span>FieldDex<span class="brand-period">.</span></span></a>
+  <div class="header-place"><span class="status-dot"></span> UNIVERSITAS CIPUTRA <span class="muted">/ SURABAYA</span></div>
+  <div class="header-actions"><button id="sound" class="sound-button" aria-pressed="false">Sound off</button><input id="volume" type="range" min="0" max="100" value="35" aria-label="Sound volume"><button id="help" class="icon-button" aria-label="How to play"><span data-icon="help"></span></button><button id="journal-toggle" class="icon-button" aria-label="Open field journal" aria-expanded="false"><span data-icon="book"></span></button></div>
+</header>
+<main class="expedition">
+<section id="map" aria-label="Interactive Ciputra showcase map">
+  <div id="canvas-host" aria-label="3D campus map"></div><div id="labels"></div>
+  <div class="map-heading"><div class="objective"><span data-icon="ball"></span><div><strong>Catch them all</strong><span id="map-progress">0 / 5</span></div></div><div class="quick-steps"><span data-icon="walk"></span><span>Move</span><b>→</b><span data-icon="radar"></span><span>Find</span><b>→</b><span data-icon="ball"></span><span>Catch</span></div></div>
+  <div class="map-tools"><button id="follow" aria-pressed="false"><span>◎</span> Follow player</button><div class="zoom-tools"><button id="zoom-in" aria-label="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out">−</button></div><button id="scan" title="Scan nearby Pokémon" aria-label="Scan nearby Pokémon"><span data-icon="radar"></span><small>Scan</small></button></div>
+  <div class="compass" aria-label="North points up the map"><b>N</b><span>↑</span></div>
+  <div id="destination" class="destination" hidden><span id="direction-arrow">↑</span><div><small>DESTINATION</small><strong id="destination-name"></strong><span id="destination-distance"></span></div><button id="clear-destination" aria-label="Clear destination">×</button></div>
+  <section id="landmark-card" class="landmark-card" aria-label="Landmark details" hidden>
+    <div class="landmark-cover"><img id="landmark-photo" alt=""><span id="landmark-type" class="photo-tag"></span><button id="close-landmark" class="close-card" aria-label="Close landmark details">×</button></div>
+    <div class="landmark-body"><div class="row"><span id="landmark-subtitle" class="eyebrow">CAMPUS STOP</span><span id="landmark-status" class="status-pill"></span></div><h2 id="landmark-name"></h2><p id="landmark-description"></p><div class="stop-distance"><span>◎ <b id="landmark-distance"></b></span><small id="visit-range"></small></div><button id="visit-landmark" class="primary">Spin & check in</button><button id="guide-landmark" class="text-button"><span data-icon="arrow"></span> Go here</button><p id="photo-caption" class="photo-credit"></p><a id="photo-source" class="photo-credit" target="_blank" rel="noreferrer">Photo source ↗</a></div>
+  </section>
+  <div class="map-key"><span title="Unvisited stop"><i class="key-blue"></i> New</span><span title="Visited stop"><i class="key-purple"></i> ✓ Visited</span><label><input id="show-detection" type="checkbox" checked> Range</label></div>
+  <section id="encounter" class="encounter" aria-label="Nearby Pokémon"><div class="encounter-avatar"><img id="encounter-portrait" alt="" hidden><span id="encounter-empty">⌁</span></div><div class="encounter-info"><span class="eyebrow" id="encounter-eyebrow">NEARBY DISCOVERY</span><h3>Finding the trail…</h3><p>Preparing your field map.</p><div class="distance-track"><span id="distance-fill"></span></div></div><button id="catch" disabled><span class="catch-ball"></span><span id="catch-label">Move closer</span><kbd>E</kbd></button></section>
+  <div id="touch-controls" class="touch-controls" aria-label="Touch movement"><button data-dy="1" data-dx="0" aria-label="Move north">↑</button><button data-dx="-1" data-dy="0" aria-label="Move west">←</button><button data-dx="0" data-dy="-1" aria-label="Move south">↓</button><button data-dx="1" data-dy="0" aria-label="Move east">→</button></div>
+  <div class="map-footer"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move <span class="footer-separator">·</span> Drag to pan</span><button id="open-gis"><span data-icon="layers"></span> Map info</button></div>
+  <div id="found-banner" role="status" aria-live="polite"><div class="found-art"><img id="found-portrait" alt=""></div><div><small>DISCOVERED</small><strong id="found-name"></strong><span id="found-place"></span></div><button id="dismiss-found" aria-label="Dismiss discovery">×</button></div>
+  <div id="capture-banner" role="status" aria-live="polite"><div class="celebration-stars">✦ &nbsp; ✧ &nbsp; ✦</div><img id="capture-portrait" alt=""><span class="eyebrow">GOTCHA!</span><h2 id="capture-name"></h2><p id="capture-note"></p><span class="capture-stamp">COLLECTED ✓</span></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="loading"><span class="brand-ball"></span><h2>Let's find something new.</h2><p>Opening your campus map…</p></div>
 </section>
-<section class="inspector"><div><span class="eyebrow">LIVE GIS</span><h2>Behind the discovery</h2></div><div class="metric"><label>PLAYER · WGS 84</label><strong id="coordinates">—</strong></div><div class="metric"><label>ANALYSIS CRS</label><strong>EPSG:32749 <small>meters</small></strong></div><div class="metric"><label>CATCH BUFFER</label><strong id="radius">30 m</strong></div><button id="compare">Compare scenarios</button><button id="reset" class="quiet">Reset expedition</button><div id="scenario-results" hidden></div></section>
-</main><script type="module" src="/src/main.js"></script></body></html>
+<aside id="journal" aria-label="Field journal">
+  <div class="journal-heading"><span class="eyebrow">FIELD DEX</span><span class="chapter"></span></div>
+  <section class="trainer"><div class="trainer-badge">✦</div><div><small>HELLO, EXPLORER</small><h2>A field day awaits.</h2></div></section>
+  <section class="progress-panel"><div class="row"><h3><span data-icon="ball"></span> Caught</h3><strong id="progress">0 / 5</strong></div><div class="track"><div id="progress-fill"></div></div><p id="progress-note">Your first discovery is close by.</p></section>
+  <div class="row section-label"><h2>Pokémon</h2><span id="species-count">5 SPECIES</span></div>
+  <div id="dex" class="dex"></div>
+  <div class="row section-label stops-heading"><h2><span data-icon="pin"></span> Stops</h2><span id="visit-progress">0 / 5</span></div>
+  <p class="section-description">Tap a stop to explore.</p>
+  <nav id="landmark-list" aria-label="Campus landmarks"></nav>
+  <div class="journal-footnote"><span class="small-ball"></span><p>Every little detour<br>can be a discovery.</p></div>
+  <div class="journal-bottom"><span>LOCAL EXPLORATION · OFFLINE READY</span><button id="reload" title="Reload the showcase export and settings"><span data-icon="refresh"></span> Refresh</button></div>
+</aside>
+</main>
+<dialog id="help-dialog"><button class="dialog-close" aria-label="Close instructions">×</button><h2>Ready to explore?</h2><div class="how-grid"><div><span data-icon="walk"></span><h3>Move</h3><p><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><br>or touch arrows</p></div><div><span data-icon="ball"></span><h3>Catch</h3><p>Within <span id="help-capture">10</span> m<br>press <kbd>E</kbd></p></div><div><span data-icon="pin"></span><h3>Visit</h3><p>Tap a photo pin<br>Get close & check in</p></div></div><p class="help-tip"><span data-icon="radar"></span> Hints unlock within <span id="help-detection">40</span> m. Drag to pan · scroll to zoom.</p><button class="primary dialog-close-button">Let's go →</button></dialog>
+<dialog id="gis-dialog"><button class="dialog-close" aria-label="Close map information">×</button><span class="eyebrow">BEHIND THE MAP</span><h2>A hand-built campus.</h2><p>Explore a campus built from manually drawn polygons, roads and location points. Python calculates which Pokémon are nearby and within capture range.</p><div class="inspector"><div class="metric"><label>PLAYER · LATITUDE, LONGITUDE</label><strong id="coordinates">—</strong></div><div class="metric"><label>DETECTION / CAPTURE</label><strong id="radius">40 m / 10 m</strong></div><div class="metric"><label>DETECTED / CAPTURABLE</label><strong id="nearby-count">—</strong></div></div><p class="scope-note">EPSG:32749 · metres. Illustrative heights, trees and landscaping. Straight-line proximity; the direction guide is not a walking route.</p><button id="compare">Compare detection radii</button><div id="scenario-results" hidden></div><div class="dialog-bottom"><span id="detection-key">40 m detection</span><span id="capture-key">10 m capture</span><button id="reset" class="text-button">Reset expedition</button></div><small>Original procedural Pokémon fan art and synthesized audio. Local reference photos credit Universitas Ciputra and Erajaya on each photo card.</small></dialog>
+<link rel="stylesheet" href="/src/ui.css"><script type="module" src="/src/main.js"></script>
+</body></html>

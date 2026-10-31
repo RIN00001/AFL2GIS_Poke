@@ -1,2 +1,2 @@
-baseline_radius_m: 30
-alternative_radius_m: 60
+alternative_detection_m: 20
+# Compare current detection radius to 20 m; keep capture radius fixed.

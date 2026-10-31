@@ -2,7 +2,6 @@
 __pycache__/
 *.pyc
 .env
-outputs/save.json
-outputs/*.png
-outputs/*.log
+outputs/*
+!outputs/.gitkeep
 .pytest_cache/
